@@ -31,6 +31,7 @@
 #include <AP_Declination.h>
 #include <AP_Notify.h>
 #include <AP_NavEKF.h>
+#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 
 #include <drivers/drv_accel.h>
 #include <drivers/drv_hrt.h>
@@ -42,7 +43,6 @@
 
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 
 #define NUM_ACCELS 2
 
@@ -117,6 +117,7 @@ void loop(void)
 }
 
 #else
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 void setup() {}
 void loop() {}
 #endif // CONFIG_HAL_BOARD
