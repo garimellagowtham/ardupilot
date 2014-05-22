@@ -6,7 +6,7 @@ configure:
 	@echo BOARD = mega2560     >> $(SKETCHBOOK)/config.mk
 	@echo  >> $(SKETCHBOOK)/config.mk
 	@echo \# HAL_BOARD determines default HAL target. >> $(SKETCHBOOK)/config.mk
-	@echo HAL_BOARD ?= HAL_BOARD_APM2 >> $(SKETCHBOOK)/config.mk
+	@echo HAL_BOARD ?= HAL_BOARD_PX4 >> $(SKETCHBOOK)/config.mk
 	@echo  >> $(SKETCHBOOK)/config.mk
 	@echo \# The communication port used to communicate with the APM. >> $(SKETCHBOOK)/config.mk
 ifneq ($(findstring CYGWIN, $(SYSTYPE)),)
@@ -20,10 +20,10 @@ endif
 	@echo  >> $(SKETCHBOOK)/config.mk
 ######################## PX4 ####################################	
 	@echo \# PX4Firmware tree: fill in the path to PX4Firmware repository from github.com/diydrones: >> $(SKETCHBOOK)/config.mk
-	@echo PX4_ROOT=../PX4Firmware >> $(SKETCHBOOK)/config.mk
+	@echo PX4_ROOT= PX4Firmware >> $(SKETCHBOOK)/config.mk
 	@echo  >> $(SKETCHBOOK)/config.mk
 	@echo \# PX4NuttX tree: fill in the path to PX4NuttX repository from github.com/diydrones: >> $(SKETCHBOOK)/config.mk
-	@echo NUTTX_SRC=../PX4NuttX/nuttx >> $(SKETCHBOOK)/config.mk
+	@echo NUTTX_SRC= PX4NuttX/nuttx >> $(SKETCHBOOK)/config.mk
 ###################### VRBRAIN ##################################	
 	@echo \# VRBRAIN Firmware tree: >> $(SKETCHBOOK)/config.mk
 	@echo VRBRAIN_ROOT=../VRBRAINFirmware >> $(SKETCHBOOK)/config.mk

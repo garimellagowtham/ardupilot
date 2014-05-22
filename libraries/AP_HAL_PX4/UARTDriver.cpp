@@ -477,6 +477,7 @@ int PX4UARTDriver::_read_fd(uint8_t *buf, uint16_t n)
  */
 void PX4UARTDriver::_timer_tick(void)
 {
+	//hal.console->println("Testing Timer");
     uint16_t n;
 
     if (!_initialised) return;

@@ -1,0 +1,35 @@
+// Dynamixel SDK platform dependent source
+#include "dxl_hal.h"
+
+uint8_t dxl_hal_open( uint8_t devIndex, float baudrate )
+
+
+void dxl_hal_close()
+
+
+void dxl_hal_clear(void)
+
+
+uint8_t dxl_hal_tx( unsigned char *pPacket, uint8_t numPacket )
+
+
+uint8_t dxl_hal_rx( unsigned char *pPacket, uint8_t numPacket )
+
+
+void dxl_hal_set_timeout( uint8_t NumRcvByte )
+{
+	// Start stop watch
+	// NumRcvByte: number of recieving data(to calculate maximum waiting time)
+	timeoutcount = NumRcvByte;
+}
+
+uint8_t dxl_hal_timeout(void)
+{
+	// Check timeout
+	// Return: 0 is false, 1 is true(timeout occurred)
+	 hal.scheduler->delay(1);//constant delay whenever delay just to give others time for doing their tasks
+	 if((timeoutcount--) > 0)
+		 return 0;
+	 else
+		 return 1;
+}

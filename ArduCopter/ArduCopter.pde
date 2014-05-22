@@ -152,6 +152,9 @@
 #include <AP_Parachute.h>		// Parachute release library
 #endif
 
+//Dynamixel Library:
+#include <dynamixel.h>
+
 // AP_HAL to Arduino compatibility layer
 #include "compat.h"
 // Configuration
@@ -164,6 +167,7 @@ static AP_Vehicle::MultiCopter aparm;
 
 // Local modules
 #include "Parameters.h"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // cliSerial

@@ -1,0 +1,200 @@
+// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
+
+//
+// Simple test for the Dynamixcell driver
+//
+#include <AP_Common.h>                                                                         
+#include <AP_Progmem.h>                                                                        
+#include <AP_HAL.h>                                                                            
+#include <AP_HAL_AVR.h>                                                                        
+#include <AP_HAL_AVR_SITL.h>                                                                   
+#include <AP_HAL_PX4.h>                                                                        
+#include <AP_HAL_Empty.h>                                                                      
+#include <AP_Math.h>                                                                           
+#include <Filter.h>                                                                            
+#include <AP_InertialSensor.h>                                                                 
+#include <AP_ADC.h>                                                                            
+#include <AP_InertialSensor.h>                                                                 
+#include <AP_GPS.h>                                                                            
+#include <DataFlash.h>                                                                         
+#include <GCS_MAVLink.h>                                                                       
+#include <AP_Mission.h>                                                                        
+#include <AP_Param.h>                                                                          
+#include <AP_Baro.h>                                                                           
+#include <AP_Compass.h>                                                                        
+#include <AP_Declination.h>                                                                    
+#include <SITL.h>                                                                              
+#include <AP_Notify.h>                                                                         
+#include <AP_AHRS.h>                                                                           
+#include <AP_Airspeed.h>                                                                       
+#include <AP_Vehicle.h>                                                                        
+#include <AP_ADC_AnalogSource.h>                                                               
+#include "dynamixel.h"
+                                
+
+
+// Control table address
+#define P_GOAL_POSITION_L	30
+#define P_GOAL_POSITION_H	31
+#define P_PRESENT_POSITION_L	36
+#define P_PRESENT_POSITION_H	37
+#define P_MOVING		46
+
+// Defulat setting
+#define DEFAULT_BAUDNUM		1 // 1Mbps
+#define DEFAULT_ID		1
+
+
+const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
+
+uint8_t baudnum = 4;//1
+uint16_t GoalPos[2] = {0, 1023};
+//int GoalPos[2] = {0, 4095}; // for Ex series
+uint8_t index = 0;
+uint8_t deviceIndex = 0;
+uint8_t Moving;
+uint16_t PresentPos;
+uint8_t CommStatus;
+dynamixel dynamixelinstance;
+
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
+void setup()
+{
+
+	hal.console->println("DynamixCell Environment startup ..");
+	dynamixelinstance.dxl_initialize(deviceIndex,baudnum);
+/*	if( dxl_initialize(deviceIndex, baudnum) == 0 )
+	{
+		hal.console->println_P(PSTR( "Failed to open USB2Dynamixel!\n"
+		                             "Press Enter key to terminate...\n"));
+	}
+	else
+		*/
+		hal.console->println( "Opened USB2Dynamixel!");
+		uint8_t i = 2;
+		hal.console->printf_P("i: %#08x\n",i);//Checking Little/Big Indian
+}
+void loop()
+{
+	hal.console->println("Press Enter key to continue");
+	//int16_t user_input;
+	while( !hal.console->available() ) {
+		hal.scheduler->delay(20);
+	}
+	// Write goal position
+	dynamixelinstance.dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, GoalPos[index] );
+	do
+	{
+		// Read present position
+		PresentPos = dynamixelinstance.dxl_read_word( DEFAULT_ID, P_PRESENT_POSITION_L );
+		CommStatus = dynamixelinstance.dxl_get_result();
+
+		if( CommStatus == COMM_RXSUCCESS )
+		{
+			hal.console->printf_P(PSTR("%d   %d\n"),GoalPos[index], PresentPos);
+			PrintErrorCode();
+		}
+		else
+		{
+			PrintCommStatus(CommStatus);
+			break;
+		}
+
+		// Check moving done
+		Moving = dynamixelinstance.dxl_read_byte( DEFAULT_ID, P_MOVING );
+		CommStatus = dynamixelinstance.dxl_get_result();
+		if( CommStatus == COMM_RXSUCCESS )
+		{
+			if( Moving == 0 )
+			{
+				// Change goal position
+				if( index == 0 )
+					index = 1;
+				else
+					index = 0;					
+			}
+
+			PrintErrorCode();
+		}
+		else
+		{
+			PrintCommStatus(CommStatus);
+			break;
+		}
+	}while(Moving == 1);
+}
+
+// Print communication result
+void PrintCommStatus(int CommStatus_)
+{
+	switch(CommStatus_)
+	{
+		case COMM_TXFAIL:
+			hal.console->println("COMM_TXFAIL: Failed transmit instruction packet!");
+			break;
+
+		case COMM_TXERROR:
+			hal.console->println("COMM_TXERROR: Incorrect instruction packet!");
+			break;
+
+		case COMM_RXFAIL:
+			hal.console->println("COMM_RXFAIL: Failed get status packet from device!");
+			break;
+
+		case COMM_RXWAITING:
+			hal.console->println("COMM_RXWAITING: Now recieving status packet!");
+			break;
+
+		case COMM_RXTIMEOUT:
+			hal.console->println("COMM_RXTIMEOUT: There is no status packet!");
+			break;
+
+		case COMM_RXCORRUPT:
+			hal.console->println("COMM_RXCORRUPT: Incorrect status packet!");
+			break;
+
+		default:
+			hal.console->println("This is unknown error code!");
+			break;
+	}
+}
+
+// Print error bit of status packet
+void PrintErrorCode()
+{
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_VOLTAGE) == 1)
+		hal.console->println("Input voltage error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_ANGLE) == 1)
+		hal.console->println("Angle limit error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_OVERHEAT) == 1)
+		hal.console->println("Overheat error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_RANGE) == 1)
+		hal.console->println("Out of range error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_CHECKSUM) == 1)
+		hal.console->println("Checksum error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_OVERLOAD) == 1)
+		hal.console->println("Overload error!");
+
+	if(dynamixelinstance.dxl_get_rxpacket_error(ERRBIT_INSTRUCTION) == 1)
+		hal.console->println("Instruction code error!");
+}
+/*
+void setup() {
+	hal.console->println_P(PSTR("hello world"));
+}
+
+void loop()
+{
+	hal.scheduler->delay(1000);
+	hal.console->println("*");
+}
+*/
+#endif
+
+AP_HAL_MAIN();

@@ -13,8 +13,10 @@ $(error ERROR: PX4_ROOT not set correctly - no nuttx-configs directory found)
 endif
 
 # default to PX4NuttX above the PX4Firmware tree
+#NUTTX_SRC := $(NUTTX_SRC)/
 ifeq ($(NUTTX_SRC),)
 NUTTX_SRC := $(shell cd $(PX4_ROOT)/../PX4NuttX/nuttx && pwd)/
+$(info $(NUTTX_SRC))
 endif
 
 # cope with relative paths for NUTTX_SRC
@@ -23,6 +25,7 @@ NUTTX_SRC := $(shell cd $(SKETCHBOOK)/$(NUTTX_SRC) && pwd)/
 endif
 
 ifeq ($(wildcard $(NUTTX_SRC)configs),)
+$(info $(NUTTX_SRC))
 $(error ERROR: NUTTX_SRC not set correctly - no configs directory found)
 endif
 
