@@ -1,0 +1,12 @@
+./ArduCopter.pde:static Parameters g;
+The rc is stored in rcout variable
+The rc library can read and also write the variables
+
+The mavlink messages have different versions and junk. You should always ensure that both the target and client have same message definitions so that it will communicate without problems
+There is mavgenerate.py GUI for generating the headers from xml. I used the ardupilot.xml from ardupilot/libraries/GCS_Mavlink/message_definitions. This is the source side and I am generating the same into mavlink_ros to ensure that we have the same version.
+
+For some hugely stupid reason the apm is not accepting messages from ardupilotmega.xml. Even their own messages are not being accepted. The only ones being accepted are in common. SO if you have to add new messages add them into common.xml (took few days to figure out this :( )
+
+Use gcs_send_text_P or gcs_send_text_fmt or similar ones for getting debug messages from gcs
+
+Measure the mass and fix the lengths of the arms based on that

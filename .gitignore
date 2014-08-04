@@ -64,3 +64,7 @@ serialsent.raw
 status.txt
 tags
 test.ArduCopter/*
+Build*
+PX4NuttX
+PX4Firmware
+*.bakup

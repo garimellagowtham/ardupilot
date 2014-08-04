@@ -74,7 +74,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Header includes
 ////////////////////////////////////////////////////////////////////////////////
-
+#define MAVLINK_COMM_NUM_BUFFERS 2
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -136,6 +136,8 @@
 #if EPM_ENABLED == ENABLED
 #include <AP_EPM.h>				// EPM cargo gripper stuff
 #endif
+
+#include <dynamixel.h> //Dynamixel Library for pixhawk
 
 // AP_HAL to Arduino compatibility layer
 #include "compat.h"

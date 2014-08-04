@@ -1902,15 +1902,29 @@ mission_failed:
         failsafe.last_heartbeat_ms = millis();
         break;
     }
+		case MAVLINK_MSG_ID_ARM_CTRL_PWM: //MAV ID:223
+		{
+			//gcs_send_text_fmt can be used to send the arm pwm debug
+			//send_text_P(SEVERITY_LOW,PSTR("Received Arm ctrl msg"));//Debug 
+
+			mavlink_arm_ctrl_pwm_t armctrl;
+			mavlink_msg_arm_ctrl_pwm_decode(msg, &armctrl);
+
+			//set pwm values for the arm:
+			armpwm1 = armctrl.pwm1;
+			armpwm2 = armctrl.pwm2;
+			armpwm3 = armctrl.pwm3;
+			break;
+		}
 
 
 #if HIL_MODE != HIL_MODE_DISABLED
-    case MAVLINK_MSG_ID_HIL_STATE:
-    {
-        mavlink_hil_state_t packet;
-        mavlink_msg_hil_state_decode(msg, &packet);
+		case MAVLINK_MSG_ID_HIL_STATE:
+		{
+			mavlink_hil_state_t packet;
+			mavlink_msg_hil_state_decode(msg, &packet);
 
-        float vel = pythagorous2(packet.vx, packet.vy);
+			float vel = pythagorous2(packet.vx, packet.vy);
         float cog = wrap_360_cd(ToDeg(atan2f(packet.vx, packet.vy)) * 100);
 
 		// if we are erasing the dataflash this object doesnt exist yet. as its called from delay_cb
