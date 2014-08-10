@@ -4,12 +4,7 @@
 
 #define PX4_GPIO_FMU_SERVO_PIN(n)       (n+50) //Copied from gpio
 
-uint16_t armpwm1;//Here it is position rather than pwm
-uint16_t armpwm2;
-uint16_t armpwm3;
-uint16_t armspeed;//Unit 0.114rpm
-uint16_t M1_MIN, M2_MIN, M1_MAX, M2_MAX;
-
+uint16_t gripperpwm;
 dynamixel dynamixelinstance;
 #define P_GOAL_POSITION_L 30
 #define P_GOAL_POSITION_H 31
@@ -23,7 +18,7 @@ dynamixel dynamixelinstance;
 
 #define DEFAULT_BAUDNUM 34; // 57600bps baud rate
 
-uint8_t id1 = 1, id2 = 2;//Will combine the id with  pwm to make a struct array
+//uint8_t id1 = 1, id2 = 2;//Will combine the id with  pwm to make a struct array TODO
 
 
 // example variables used in Wii camera testing - replace with your own

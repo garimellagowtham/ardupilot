@@ -1910,10 +1910,26 @@ mission_failed:
 			mavlink_arm_ctrl_pwm_t armctrl;
 			mavlink_msg_arm_ctrl_pwm_decode(msg, &armctrl);
 
-			//set pwm values for the arm:
-			armpwm1 = armctrl.pwm1;
-			armpwm2 = armctrl.pwm2;
-			armpwm3 = armctrl.pwm3;
+			//Grripper clinching only We moved the ctrl code away from pixhawk
+			gripperpwm = armctrl.pwm3;
+			if(gripperpwm > 700)//TRISTATE gripper 
+			{
+				digitalWrite(54,LOW);
+				hal.rcout->enable_ch(11);
+				hal.rcout->write(11, 10000);//This is not for servo
+			}
+			else if(gripperpwm < 300)
+			{
+				digitalWrite(54,HIGH);
+				hal.rcout->enable_ch(11);
+				hal.rcout->write(11, 15000);//This reduces the force with which it opens
+			}
+			else
+			{
+				digitalWrite(54,LOW);
+				hal.rcout->enable_ch(11);
+				hal.rcout->write(11, 0);//Not moving
+			}
 			break;
 		}
 
