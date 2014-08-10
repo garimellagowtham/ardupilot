@@ -1,6 +1,8 @@
 #include "dynamixel.h"
 #include <AP_HAL.h>
 
+#define DIRXN_PIN 55
+
 extern const AP_HAL::HAL& hal;
 
 unsigned char gbInstructionPacket[MAXNUM_TXPARAM+10] = {0};
@@ -19,6 +21,9 @@ uint8_t dynamixel::dxl_hal_open( uint8_t devIndex, float baudrate )
 	// devIndex: Device index
 	// baudrate: Real baudrate (ex> 115200, 57600, 38400...)
 	// Return: 0(Failed), 1(Succeed)
+	//Set the direction pin as output pin and write it to low (receive mode)
+ 	hal.gpio->pinMode(DIRXN_PIN,GPIO_OUTPUT);
+	hal.gpio->write(DIRXN_PIN,0);//LOW
 	timeoutcount = 0;
 	if(hal.uartD != NULL)
 	{
@@ -57,7 +62,7 @@ uint8_t dynamixel::dxl_hal_rx( unsigned char *pPacket, uint8_t numPacket )
 	// numPacket: number of data array
 	// Return: number of data recieved. -1 is error.
 	//return hal.uartD->_read_fd(pPacket, numPacket);
-	uint8_t availablebytes = hal.uartD->available();
+	int16_t availablebytes = hal.uartD->available();
 	if(availablebytes > numPacket)
 		availablebytes = numPacket;
 	else if(availablebytes < 0)
@@ -269,14 +274,17 @@ void dynamixel::dxl_rx_packet()
 
 void dynamixel::dxl_txrx_packet()
 {
+	//Set the direction pin to transmit
+	hal.gpio->write(DIRXN_PIN,1);//HIGH
 	dxl_tx_packet();
-
 	if( gbCommStatus != COMM_TXSUCCESS )
 		return;	
-
+	//Set the direction pin to receive
+	hal.gpio->write(DIRXN_PIN,0);//LOW
 	do{
 		dxl_rx_packet();		
 	}while( gbCommStatus == COMM_RXWAITING );	
+	//Set the direction pin to transmit
 }
 
 uint8_t dynamixel::dxl_get_result()

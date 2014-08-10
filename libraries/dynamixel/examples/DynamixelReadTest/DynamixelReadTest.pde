@@ -1,7 +1,7 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 //
-// Simple test for the Dynamixcell driver
+// Simple Read test for the Dynamixcell driver
 //
 #include <AP_Common.h>                                                                         
 #include <AP_Progmem.h>                                                                        
@@ -76,190 +76,36 @@ void setup()
 }
 void loop()
 {
-	int16_t user_input;
-	hal.console->println_P(PSTR(
-				"Menu:\r\n"
-				"    a) Specify Id\r\n"
-				"    c) Set Device Id\r\n"
-				"    d) Set Baudrate\r\n"
-			  "    g) Set Goal\r\n"));
-	uint8_t buffer[3];//3 byte buffer
 
-	
-	while( hal.console->available() ) {
-		user_input = hal.console->read();
-		if( user_input == 'c' || user_input == 'C' ) {
-			int count1 = 0;
-			for(count1 = 0;count1<3;count1++)
-				buffer[count1] = 0;//Assigning to 0
-			count1 = 0;
-			while(user_input != 27)//Esc
-			{
-				while( !hal.console->available()) {
-					hal.scheduler->delay(20);
-				}//Wait till console has some input
-				user_input = hal.console->read();
-				if(user_input == 13 || count1 > 2)//Enter key  has been pressed or 2 bytes have been filled
-				{
-					uint8_t newid = 1;//default id
-					newid = atoi((char*)buffer);
-					hal.console->printf_P("Setting ID: %d\n", newid);
-					//Set Device ID and change the id in the code
-					dynamixelinstance.dxl_write_byte( DEFAULT_ID, P_ID, newid );
-					DEFAULT_ID = newid;
-				  for(count1 = 0;count1<3;count1++)
-						buffer[count1] = 0;//Assigning to 0
-					count1 = 0;
-				}
-				else{
-					buffer[count1++] = user_input;
-				}
-			}
-			hal.console->println("Exitting set ID");
-		}
-		if( user_input == 'a' || user_input == 'A' ) {
-			int count1 = 0;
-			for(count1 = 0;count1<3;count1++)
-				buffer[count1] = 0;//Assigning to 0
-			count1 = 0;
-			while(user_input != 13)//Enter
-			{
-				while( !hal.console->available()) {
-					hal.scheduler->delay(20);
-				}//Wait till console has some input
-				user_input = hal.console->read();
-				if(user_input == 13 || count1 > 2)//Enter key  or 2 bytes have been filled
-				{
-					uint8_t newid = 1;//default id
-					newid = atoi((char*)buffer);
-					hal.console->printf_P("Setting Default ID: %d\n", newid);
-					//Set Device ID and change the id in the code
-					DEFAULT_ID = newid;
-					for(count1 = 0;count1<3;count1++)
-						buffer[count1] = 0;//Assigning to 0
-					count1 = 0;
-				}
-				else{
-					buffer[count1++] = user_input;
-				}
-			}
-			hal.console->println("Exitting Specify ID");
-		}
-		if(user_input == 'd' || user_input == 'D')
-		{
-			//Set the baud rate
-			int count1 = 0;
-			for(count1 = 0;count1<3;count1++)
-				buffer[count1] = 0;//Assigning to 0
-			count1 = 0;
-			uint8_t newbaudnum = 1;//default id
-			while(user_input != 13)//Enter
-			{
-				while( !hal.console->available()) {
-					hal.scheduler->delay(20);
-				}//Wait till console has some input
-				user_input = hal.console->read();
-				if(user_input == 13 || count1 > 2)//Enter key  or 2 bytes have been filled
-				{
-					newbaudnum = atoi((char*)buffer);
-					//Set Device ID and change the id in the code
-					for(count1 = 0;count1<3;count1++)
-						buffer[count1] = 0;//Assigning to 0
-					count1 = 0;
-				}
-				else{
-					buffer[count1++] = user_input;
-				}
-			}
-			hal.console->printf_P("Setting Baudnum: %d\n", newbaudnum);
-			if((newbaudnum > 0) &&(newbaudnum < 250))
-			{
-				dynamixelinstance.dxl_write_byte( DEFAULT_ID, P_BAUDRATE, newbaudnum);
-				DEFAULT_BAUDNUM = newbaudnum;
-			}
-			hal.console->println("Exitting Specify ID");
-		}
-		if(user_input == 'g' || user_input == 'G')
-		{
-			hal.console->println("Menu: + to increase goal, - to decrease goal");
-			while(user_input != 27)//Escape
-			{
-				while( !hal.console->available()) {
-					hal.scheduler->delay(20);
-				}//Wait till console has some input
-				user_input = hal.console->read();
-
-				if(user_input == '+' )
-				{
-					//Set Goal
-					// Write goal position
-					goalindex += 10;
-					dynamixelinstance.dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, goalindex );
-					hal.console->printf_P(PSTR("Setting Goal: %d\n"),goalindex);
-					//Reading the current position:
-					PresentPos = dynamixelinstance.dxl_read_word( DEFAULT_ID, P_PRESENT_POSITION_L );
-					CommStatus = dynamixelinstance.dxl_get_result();
-					if( CommStatus == COMM_RXSUCCESS )
-					{
-						//hal.console->printf_P(PSTR("%d   %d\n"),GoalPos[index], PresentPos);
-						hal.console->printf_P(PSTR("Current Position: %d\n"),PresentPos);
-						//PrintErrorCode();
-					}
-					else
-					{
-						PrintCommStatus(CommStatus);
-						break;
-					}
-
-
-				}
-				if(user_input == '-')
-				{
-					goalindex -= 10;
-					dynamixelinstance.dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, goalindex );
-			    hal.console->printf_P(PSTR("Setting Goal: %d\n"),goalindex);
-				}
-				((PX4UARTDriver*)hal.uartD)->_timer_tick();//Tick the timer for uartD
-			}
-			goalindex = 0;
-			hal.console->println("Exitting Specify goal");
-		}
-	}
-	while( !hal.console->available() ) {
-		hal.scheduler->delay(20);
-	}
-	/*
-		 do
-		 {
 	// Read present position
 	PresentPos = dynamixelinstance.dxl_read_word( DEFAULT_ID, P_PRESENT_POSITION_L );
 	CommStatus = dynamixelinstance.dxl_get_result();
 
 	if( CommStatus == COMM_RXSUCCESS )
 	{
-	hal.console->printf_P(PSTR("%d   %d\n"),GoalPos[index], PresentPos);
-	PrintErrorCode();
+		hal.console->printf_P(PSTR("%d   %d\n"),goalindex, PresentPos);
+		PrintErrorCode();
 	}
 	else
 	{
-	PrintCommStatus(CommStatus);
-	break;
+		PrintCommStatus(CommStatus);
 	}
 
-	// Check moving done
-	Moving = dynamixelinstance.dxl_read_byte( DEFAULT_ID, P_MOVING );
-	CommStatus = dynamixelinstance.dxl_get_result();
-	if( CommStatus == COMM_RXSUCCESS )
-	{
-	if( Moving == 0 )
-	{
+	/*	// Check moving done
+			Moving = dynamixelinstance.dxl_read_byte( DEFAULT_ID, P_MOVING );
+			CommStatus = dynamixelinstance.dxl_get_result();
+			if( CommStatus == COMM_RXSUCCESS )
+			{
+			if( Moving == 0 )
+			{
 	// Change goal position
-	if( index == 0 )
-	index = 1;
+	if( goalindex == 2047 )
+	goalindex = 0;
 	else
-	index = 0;					
+	goalindex = 2047;					
+	//Write goal position:
+	dynamixelinstance.dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, goalindex );
 	}
-
 	PrintErrorCode();
 	}
 	else
@@ -267,8 +113,8 @@ void loop()
 	PrintCommStatus(CommStatus);
 	break;
 	}
-	}while(Moving == 1);
 	 */
+	hal.scheduler->delay(2);
 }
 
 // Print communication result

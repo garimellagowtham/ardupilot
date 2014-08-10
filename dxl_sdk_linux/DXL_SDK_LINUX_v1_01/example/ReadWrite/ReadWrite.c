@@ -27,12 +27,13 @@ void PrintErrorCode(void);
 int main()
 {
 	int baudnum = DEFAULT_BAUDNUM;
-	int GoalPos[2] = {0, 1024};
+	int GoalPos[2] = {0, 1023};
 	//int GoalPos[2] = {0, 4095}; // for Ex series
 	int index = 0;
 	int deviceIndex = 0;
 	int Moving, PresentPos;
 	int CommStatus;
+	int count = 0;
 
 	printf( "\n\nWrite example for Linux\n\n" );
 	///////// Open USB2Dynamixel ////////////
@@ -48,9 +49,6 @@ int main()
 
 	while(1)
 	{
-		printf( "Press Enter key to continue!(press ESC and Enter to quit)\n" );
-		if(getchar() == 0x1b)
-			break;
 
 		// Write goal position
 		dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, GoalPos[index] );
@@ -59,15 +57,15 @@ int main()
 		else
 			index = 0;
 			*/
-		do
-		{
+		//do
+		//{
 			// Read present position
 			PresentPos = dxl_read_word( DEFAULT_ID, P_PRESENT_POSITION_L );
 			CommStatus = dxl_get_result();
 
 			if( CommStatus == COMM_RXSUCCESS )
 			{
-				printf( "%d   %d\n",GoalPos[index], PresentPos );
+				printf( "Goal_Pos: %d   %d\n",GoalPos[index], PresentPos );
 				PrintErrorCode();
 			}
 			else
@@ -80,7 +78,7 @@ int main()
 			CommStatus = dxl_get_result();
 			if( CommStatus == COMM_RXSUCCESS )
 			{
-				if( Moving == 0 )
+				/*if( Moving == 0 )
 				{
 					// Change goal position
 					if( index == 0 )
@@ -90,8 +88,26 @@ int main()
 				}
 				else
 				{
-					dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, GoalPos[index] );
-				}
+					*/
+					printf("Moving %d\n",Moving);
+					if(count == 10)
+					{					
+						printf( "Press Enter key to continue!(press ESC and Enter to quit)\n" );
+						if(getchar() == 0x1b)
+							break;
+						if( index == 0 )
+							index = 1;
+						else
+							index = 0;					
+
+						dxl_write_word( DEFAULT_ID, P_GOAL_POSITION_L, GoalPos[index] );
+						count = 0;
+					}
+					else
+					{
+						count++;
+					}
+				//}
 				PrintErrorCode();
 			}
 			else
@@ -99,7 +115,7 @@ int main()
 				PrintCommStatus(CommStatus);
 				break;
 			}
-		}while(Moving == 1);
+		//}while(Moving == 1);
 	}
 
 	// Close device
